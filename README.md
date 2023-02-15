@@ -7,7 +7,17 @@ Launch Weston on Nerves
 ```elixir
 config_file = Application.app_dir(:your_app, "priv/weston.ini")
 
-{NervesWeston, tty: 1, config_file: config_file, name: :weston]
+{NervesWeston,
+ tty: 1,
+ xdg_runtime_dir: "/tmp/nerves_weston",
+ cli_args: [
+   # see weston --help
+   "--config=/data/weston.ini"
+ ],
+ daemon_opts: [
+   # options passed to MuonTrap.Daemon
+ ],
+ name: :weston}
 ```
 
 ## Installation

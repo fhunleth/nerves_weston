@@ -19,7 +19,8 @@ defmodule NervesWeston.MixProject do
 
   defp deps do
     [
-      {:muontrap, "~> 1.0.0"}
+      {:muontrap, "~> 1.2.0"},
+      {:nimble_options, "~> 0.5.0"}
     ]
   end
 end

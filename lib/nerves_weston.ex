@@ -1,35 +1,52 @@
 defmodule NervesWeston do
   use Supervisor
 
-  @tty 1
-  @xdg_runtime_dir "/tmp/nerves_weston"
+  @definition [
+    name: [
+      required: true,
+      type: :atom
+    ],
+    tty: [
+      required: true,
+      type: :non_neg_integer
+    ],
+    xdg_runtime_dir: [
+      required: true,
+      type: :string
+    ],
+    cli_args: [
+      required: false,
+      type: {:list, :string},
+      default: []
+    ],
+    daemon_opts: [
+      type: :keyword_list,
+      required: false,
+      default: []
+    ]
+  ]
+  @schema NimbleOptions.new!(@definition)
 
   def start_link(opts) do
-    name = opts[:name] || raise ArgumentError, "the :name option is required"
+    opts = NimbleOptions.validate!(opts, @schema)
 
-    Supervisor.start_link(__MODULE__, opts, name: name)
+    Supervisor.start_link(__MODULE__, opts, name: opts[:name])
   end
 
   @impl Supervisor
   def init(opts) do
-    tty = opts[:tty] || @tty
-    extra_args = opts[:extra_args] || []
-    xdg_runtime_dir = opts[:xdg_runtime_dir] || @xdg_runtime_dir
-    args = ["--tty=#{tty}"] ++ maybe_add_config_file(opts[:config_file]) ++ extra_args
-    env = [{"XDG_RUNTIME_DIR", xdg_runtime_dir}]
+    args = ["--tty=#{opts[:tty]}" | opts[:cli_args]]
+    env = [{"XDG_RUNTIME_DIR", opts[:xdg_runtime_dir]}]
 
-    setup_xdg_runtime_dir(xdg_runtime_dir)
+    setup_xdg_runtime_dir(opts[:xdg_runtime_dir])
     setup_udev()
 
     children = [
-      {MuonTrap.Daemon, ["weston", args, [env: env]]}
+      {MuonTrap.Daemon, ["weston", args, [{:env, env} | opts[:daemon_opts]]]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
-
-  defp maybe_add_config_file(nil), do: []
-  defp maybe_add_config_file(path), do: ["--config=#{path}"]
 
   defp setup_xdg_runtime_dir(path) do
     File.mkdir(path)
