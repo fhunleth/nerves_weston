@@ -35,7 +35,7 @@ defmodule NervesWeston do
 
   @impl Supervisor
   def init(opts) do
-    args = ["--tty=#{opts[:tty]}" | opts[:cli_args]]
+    args = ["--continue-without-input" | opts[:cli_args]]
     env = [{"XDG_RUNTIME_DIR", opts[:xdg_runtime_dir]}]
 
     setup_xdg_runtime_dir(opts[:xdg_runtime_dir])
